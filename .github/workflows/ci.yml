@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.compiler }} (C++17, Release)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc
+            cc: gcc
+            cxx: g++
+          - compiler: clang
+            cc: clang
+            cxx: clang++
+
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain versions
+        run: |
+          cmake --version
+          ${CXX} --version
+
+      # Cache the FetchContent downloads (GoogleTest, Google Benchmark) so we do
+      # not re-clone them on every run.
+      - name: Cache FetchContent deps
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: ${{ runner.os }}-${{ matrix.compiler }}-deps-${{ hashFiles('CMakeLists.txt') }}
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLT_BUILD_TESTS=ON \
+            -DLLT_BUILD_BENCHMARKS=ON \
+            -DLLT_BUILD_EXAMPLES=ON
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Run tests
+        working-directory: build
+        run: ctest --output-on-failure --build-config Release
+
+      - name: Run benchmarks (smoke)
+        # Run a quick pass so the bench binaries are exercised; absolute numbers
+        # on shared runners are NOT representative of tuned bare metal.
+        run: |
+          ./build/bench/bench_spsc_queue --benchmark_min_time=0.1s || true
+          ./build/bench/bench_pool --benchmark_min_time=0.1s || true
+
+      - name: Run examples (smoke)
+        run: |
+          ./build/examples/example_pool || true
+          ./build/examples/example_spsc || true

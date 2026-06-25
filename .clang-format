@@ -1,0 +1,22 @@
+# LLVM-based style, 100-column limit.
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++17
+ColumnLimit: 100
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+AccessModifierOffset: -1
+PointerAlignment: Left
+DerivePointerAlignment: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: true
+BinPackParameters: true
+SpaceAfterTemplateKeyword: true
+SortIncludes: CaseSensitive
+IncludeBlocks: Preserve
+ReflowComments: true
+FixNamespaceComments: true
