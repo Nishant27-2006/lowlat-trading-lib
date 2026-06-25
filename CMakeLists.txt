@@ -70,7 +70,7 @@ if(LLT_BUILD_TESTS OR LLT_BUILD_BENCHMARKS)
     FetchContent_Declare(
       googletest
       GIT_REPOSITORY https://github.com/google/googletest.git
-      GIT_TAG release-1.14.0)
+      GIT_TAG v1.14.0)
     # Do not install gtest as part of our install step.
     set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
     # On MSVC, link gtest against the shared CRT consistently.
